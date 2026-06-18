@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Le Tortuga — Restaurant & Bar</title>
+  <meta name="description" content="Le Tortuga — Saveurs authentiques, ambiance unique. Réservez votre table dès maintenant." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Karla:wght@300;400;500;600;700&family=Playfair+Display+SC:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary:    '#DC2626',
+            secondary:  '#F87171',
+            cta:        '#CA8A04',
+            bg:         '#FEF2F2',
+            textMain:   '#450A0A',
+          },
+          fontFamily: {
+            heading: ['"Playfair Display SC"', 'serif'],
+            body:    ['Karla', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Karla', sans-serif; background-color: #FEF2F2; color: #450A0A; }
+    h1, h2, h3 { font-family: 'Playfair Display SC', serif; }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+      .fade-up { opacity: 1 !important; transform: none !important; }
+    }
+
+    /* ── Scroll animations ── */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 650ms cubic-bezier(0.22,1,0.36,1), transform 650ms cubic-bezier(0.22,1,0.36,1);
+    }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+    .fade-up.delay-1 { transition-delay: 100ms; }
+    .fade-up.delay-2 { transition-delay: 200ms; }
+    .fade-up.delay-3 { transition-delay: 300ms; }
+    .fade-up.delay-4 { transition-delay: 400ms; }
+
+    /* Navbar scroll effect */
+    .navbar-scrolled { background-color: rgba(254, 242, 242, 0.95); backdrop-filter: blur(8px); box-shadow: 0 2px 20px rgba(69,10,10,0.08); }
+
+    /* Gold underline */
+    .gold-line::after { content: ''; display: block; width: 3.5rem; height: 3px; background: #CA8A04; margin: 0.75rem auto 0; border-radius: 2px; }
+    .gold-line-left::after { content: ''; display: block; width: 3rem; height: 3px; background: #CA8A04; margin: 0.6rem 0 0; border-radius: 2px; }
+
+    /* Menu card hover */
+    .menu-card { transition: transform 200ms ease, box-shadow 200ms ease; }
+    .menu-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(69,10,10,0.15); }
+
+    /* Gallery */
+    .gallery-item { overflow: hidden; cursor: pointer; }
+    .gallery-item img { transition: transform 400ms ease, filter 400ms ease; width: 100%; height: 100%; object-fit: cover; }
+    .gallery-item:hover img { transform: scale(1.06); filter: brightness(0.88); }
+
+    /* Lightbox */
+    #lightbox { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(10,0,0,0.92); align-items: center; justify-content: center; }
+    #lightbox.open { display: flex; }
+    #lightbox img { max-width: 90vw; max-height: 85vh; object-fit: contain; border-radius: 4px; box-shadow: 0 32px 80px rgba(0,0,0,0.6); }
+    #lightbox-prev, #lightbox-next { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.12); border: none; color: #fff; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 200ms; font-size: 20px; }
+    #lightbox-prev:hover, #lightbox-next:hover { background: rgba(202,138,4,0.7); }
+    #lightbox-prev { left: 16px; }
+    #lightbox-next { right: 16px; }
+    #lightbox-close { position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.12); border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 200ms; }
+    #lightbox-close:hover { background: rgba(220,38,38,0.7); }
+    #lightbox-counter { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.6); font-family: 'Karla', sans-serif; font-size: 13px; letter-spacing: 0.1em; }
+
+    /* Testimonials */
+    .star { color: #CA8A04; }
+
+    /* Back to top */
+    #back-top { position: fixed; bottom: 28px; right: 28px; z-index: 60; width: 44px; height: 44px; background: #CA8A04; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 16px rgba(202,138,4,0.4); transition: opacity 300ms, transform 300ms, background 200ms; opacity: 0; transform: translateY(12px); pointer-events: none; border: none; }
+    #back-top.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    #back-top:hover { background: #a16207; }
+
+    /* Map container */
+    .map-container { border-radius: 12px; overflow: hidden; box-shadow: 0 8px 32px rgba(69,10,10,0.1); }
+  </style>
+</head>
+<body class="antialiased">
+
+  <!-- ═══════════════════════════ NAVBAR ═══════════════════════════ -->
+  <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 py-4 px-6 md:px-12 flex items-center justify-between">
+    <a href="#hero" class="flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-cta rounded" aria-label="Le Tortuga — accueil">
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="18" cy="18" r="17" stroke="#CA8A04" stroke-width="2"/>
+        <circle cx="18" cy="18" r="4" fill="#CA8A04"/>
+        <line x1="18" y1="1" x2="18" y2="8" stroke="#CA8A04" stroke-width="2" stroke-linecap="round"/>
+        <line x1="18" y1="28" x2="18" y2="35" stroke="#CA8A04" stroke-width="2" stroke-linecap="round"/>
+        <line x1="1" y1="18" x2="8" y2="18" stroke="#CA8A04" stroke-width="2" stroke-linecap="round"/>
+        <line x1="28" y1="18" x2="35" y2="18" stroke="#CA8A04" stroke-width="2" stroke-linecap="round"/>
+        <line x1="5.4" y1="5.4" x2="10.3" y2="10.3" stroke="#CA8A04" stroke-width="2" stroke-linecap="round"/>
+        <line x1="25.7" y1="25.7" x2="30.6" y2="30.6" stroke="#CA8A04" stroke-width="2" stroke-linecap="round"/>
+        <line x1="30.6" y1="5.4" x2="25.7" y2="10.3" stroke="#CA8A04" stroke-width="2" stroke-linecap="round"/>
+        <line x1="10.3" y1="25.7" x2="5.4" y2="30.6" stroke="#CA8A04" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span class="text-xl font-heading text-bg tracking-wider leading-none">Le Tortuga</span>
+    </a>
+
+    <!-- Desktop nav -->
+    <ul class="hidden md:flex items-center gap-8 text-bg font-body font-medium text-sm tracking-wide">
+      <li><a href="#about"       class="hover:text-cta transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cta rounded">Notre Histoire</a></li>
+      <li><a href="#menu"        class="hover:text-cta transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cta rounded">Menu</a></li>
+      <li><a href="#gallery"     class="hover:text-cta transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cta rounded">Galerie</a></li>
+      <li><a href="#testimonials" class="hover:text-cta transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cta rounded">Avis</a></li>
+      <li><a href="#contact"     class="hover:text-cta transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cta rounded">Contact</a></li>
+      <li>
+        <a href="#reservation"
+           class="bg-cta text-white px-5 py-2 rounded font-semibold hover:bg-yellow-700 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+          Réserver
+        </a>
+      </li>
+    </ul>
+
+    <!-- Mobile hamburger -->
+    <button id="menu-btn" class="md:hidden text-bg focus:outline-none focus-visible:ring-2 focus-visible:ring-cta rounded p-1" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="mobile-menu">
+      <svg id="icon-open"  width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      <svg id="icon-close" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="hidden"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </nav>
+
+  <!-- Mobile menu -->
+  <div id="mobile-menu" class="hidden fixed inset-0 z-40 bg-textMain/95 backdrop-blur flex flex-col items-center justify-center gap-8 text-bg text-2xl font-heading">
+    <a href="#about"        onclick="closeMobileMenu()" class="hover:text-cta transition-colors duration-200 cursor-pointer">Notre Histoire</a>
+    <a href="#menu"         onclick="closeMobileMenu()" class="hover:text-cta transition-colors duration-200 cursor-pointer">Menu</a>
+    <a href="#gallery"      onclick="closeMobileMenu()" class="hover:text-cta transition-colors duration-200 cursor-pointer">Galerie</a>
+    <a href="#testimonials" onclick="closeMobileMenu()" class="hover:text-cta transition-colors duration-200 cursor-pointer">Avis</a>
+    <a href="#contact"      onclick="closeMobileMenu()" class="hover:text-cta transition-colors duration-200 cursor-pointer">Contact</a>
+    <a href="#reservation"  onclick="closeMobileMenu()" class="bg-cta text-white px-8 py-3 rounded font-semibold mt-2 hover:bg-yellow-700 transition-colors duration-200 cursor-pointer">Réserver</a>
+  </div>
+
+  <!-- ═══════════════════════════ HERO ═══════════════════════════ -->
+  <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <!-- Real photo background -->
+    <img
+      src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=85&auto=format&fit=crop"
+      alt=""
+      aria-hidden="true"
+      class="absolute inset-0 w-full h-full object-cover"
+      loading="eager"
+    />
+    <!-- Dark overlay -->
+    <div class="absolute inset-0" style="background: linear-gradient(135deg, rgba(69,10,10,0.80) 0%, rgba(220,38,38,0.40) 100%);"></div>
+
+    <div class="relative z-10 text-center px-6 max-w-4xl mx-auto">
+      <p class="font-body text-cta text-sm md:text-base tracking-[0.3em] uppercase mb-4">Restaurant & Bar</p>
+      <h1 class="text-6xl md:text-8xl lg:text-9xl text-white mb-6 leading-none">
+        Le<br/>Tortuga
+      </h1>
+      <p class="font-body text-white/80 text-lg md:text-xl max-w-xl mx-auto mb-10 leading-relaxed">
+        Saveurs authentiques, ambiance unique.<br/>Une expérience gastronomique inoubliable.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="#reservation"
+           class="bg-cta text-white px-8 py-4 rounded text-base font-semibold tracking-wide hover:bg-yellow-700 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+          Réserver une Table
+        </a>
+        <a href="#menu"
+           class="border-2 border-white/60 text-white px-8 py-4 rounded text-base font-semibold tracking-wide hover:border-white hover:bg-white/10 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-cta">
+          Voir le Menu
+        </a>
+      </div>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/60">
+      <span class="font-body text-xs tracking-widest uppercase">Découvrir</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ ABOUT ═══════════════════════════ -->
+  <section id="about" class="py-24 md:py-32 px-6 md:px-12 max-w-6xl mx-auto">
+    <div class="grid md:grid-cols-2 gap-16 items-center">
+      <!-- Text -->
+      <div class="fade-up">
+        <p class="font-body text-cta text-sm tracking-[0.25em] uppercase mb-3">Notre Histoire</p>
+        <h2 class="text-4xl md:text-5xl text-textMain mb-2 gold-line-left">
+          Une passion pour<br/>la bonne cuisine
+        </h2>
+        <div class="mt-8 space-y-5 font-body text-textMain/75 text-base leading-relaxed">
+          <p>
+            Depuis notre ouverture, Le Tortuga s'est imposé comme une adresse incontournable pour les amateurs de gastronomie. Notre chef et son équipe vous proposent une carte imaginée avec les meilleurs produits de saison.
+          </p>
+          <p>
+            Situé au cœur de la ville, notre restaurant allie chaleur et caractère pour vous offrir un moment d'exception. Chaque plat raconte une histoire, chaque service est une expérience.
+          </p>
+        </div>
+        <div class="mt-10 flex gap-12">
+          <div class="fade-up delay-1">
+            <p class="text-4xl font-heading text-primary">12+</p>
+            <p class="font-body text-textMain/60 text-sm mt-1">Ans d'expérience</p>
+          </div>
+          <div class="fade-up delay-2">
+            <p class="text-4xl font-heading text-primary">40+</p>
+            <p class="font-body text-textMain/60 text-sm mt-1">Plats au menu</p>
+          </div>
+          <div class="fade-up delay-3">
+            <p class="text-4xl font-heading text-primary">500+</p>
+            <p class="font-body text-textMain/60 text-sm mt-1">Avis 5 étoiles</p>
+          </div>
+        </div>
+      </div>
+      <!-- Real photo -->
+      <div class="relative fade-up delay-2">
+        <div class="rounded-lg aspect-[4/5] overflow-hidden shadow-2xl">
+          <img
+            src="https://images.unsplash.com/photo-1600891964092-4316c288032e?w=800&q=85&auto=format&fit=crop"
+            alt="Notre cuisine raffinée, préparée avec passion"
+            class="w-full h-full object-cover"
+            loading="lazy"
+          />
+        </div>
+        <!-- Gold accent box -->
+        <div class="absolute -bottom-5 -right-5 bg-cta w-28 h-28 rounded-lg flex items-center justify-center shadow-lg">
+          <div class="text-center text-white">
+            <p class="font-heading text-2xl leading-none">Ouvert</p>
+            <p class="font-body text-xs mt-1 opacity-90">7j / 7</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ MENU ═══════════════════════════ -->
+  <section id="menu" class="py-24 md:py-32 bg-textMain">
+    <div class="px-6 md:px-12 max-w-6xl mx-auto">
+      <div class="text-center mb-16 fade-up">
+        <p class="font-body text-cta text-sm tracking-[0.25em] uppercase mb-3">À la Carte</p>
+        <h2 class="text-4xl md:text-5xl text-bg gold-line">Nos Spécialités</h2>
+      </div>
+
+      <!-- Category tabs -->
+      <div class="flex flex-wrap justify-center gap-3 mb-12 fade-up delay-1" role="tablist" aria-label="Catégories du menu">
+        <button class="tab-btn active font-body font-semibold text-sm px-6 py-2.5 rounded-full transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-cta"
+                data-category="entrees" role="tab" aria-selected="true">Entrées</button>
+        <button class="tab-btn font-body font-semibold text-sm px-6 py-2.5 rounded-full transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-cta"
+                data-category="plats" role="tab" aria-selected="false">Plats</button>
+        <button class="tab-btn font-body font-semibold text-sm px-6 py-2.5 rounded-full transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-cta"
+                data-category="desserts" role="tab" aria-selected="false">Desserts</button>
+        <button class="tab-btn font-body font-semibold text-sm px-6 py-2.5 rounded-full transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-cta"
+                data-category="boissons" role="tab" aria-selected="false">Boissons</button>
+      </div>
+
+      <!-- Menu cards -->
+      <div id="menu-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Cards injected by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ GALLERY ═══════════════════════════ -->
+  <section id="gallery" class="py-24 md:py-32 px-6 md:px-12 max-w-6xl mx-auto">
+    <div class="text-center mb-16 fade-up">
+      <p class="font-body text-cta text-sm tracking-[0.25em] uppercase mb-3">Atmosphère</p>
+      <h2 class="text-4xl md:text-5xl text-textMain gold-line">Notre Univers</h2>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div class="gallery-item rounded-lg aspect-square fade-up delay-1" data-index="0" role="button" aria-label="Voir la photo 1" tabindex="0">
+        <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=600&q=80&auto=format&fit=crop" alt="Salle de restaurant élégante" loading="lazy" />
+      </div>
+      <div class="gallery-item rounded-lg md:col-span-2 aspect-[2/1] md:aspect-auto fade-up delay-2" data-index="1" role="button" aria-label="Voir la photo 2" tabindex="0">
+        <img src="https://images.unsplash.com/photo-1544025162-d76694265947?w=900&q=80&auto=format&fit=crop" alt="Côte de bœuf grillée" loading="lazy" style="height:100%;" />
+      </div>
+      <div class="gallery-item rounded-lg md:col-span-2 aspect-[2/1] md:aspect-auto fade-up delay-1" data-index="2" role="button" aria-label="Voir la photo 3" tabindex="0">
+        <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=900&q=80&auto=format&fit=crop" alt="Assiette gastronomique dressée" loading="lazy" style="height:100%;" />
+      </div>
+      <div class="gallery-item rounded-lg aspect-square fade-up delay-2" data-index="3" role="button" aria-label="Voir la photo 4" tabindex="0">
+        <img src="https://images.unsplash.com/photo-1510626176961-4b57d4fbad03?w=600&q=80&auto=format&fit=crop" alt="Cocktail signature du Tortuga" loading="lazy" />
+      </div>
+      <div class="gallery-item rounded-lg aspect-square fade-up delay-3" data-index="4" role="button" aria-label="Voir la photo 5" tabindex="0">
+        <img src="https://images.unsplash.com/photo-1482049016688-2d3e1b311543?w=600&q=80&auto=format&fit=crop" alt="Petit-déjeuner raffiné" loading="lazy" />
+      </div>
+      <div class="gallery-item rounded-lg aspect-square fade-up delay-4" data-index="5" role="button" aria-label="Voir la photo 6" tabindex="0">
+        <img src="https://images.unsplash.com/photo-1547592180-85f173990554?w=600&q=80&auto=format&fit=crop" alt="Ambiance chaleureuse du restaurant" loading="lazy" />
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ LIGHTBOX ═══════════════════════════ -->
+  <div id="lightbox" role="dialog" aria-modal="true" aria-label="Galerie photo">
+    <button id="lightbox-close" aria-label="Fermer la galerie">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <button id="lightbox-prev" aria-label="Photo précédente">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <img id="lightbox-img" src="" alt="" />
+    <button id="lightbox-next" aria-label="Photo suivante">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <p id="lightbox-counter"></p>
+  </div>
+
+  <!-- ═══════════════════════════ TESTIMONIALS ═══════════════════════════ -->
+  <section id="testimonials" class="py-24 md:py-32 bg-textMain">
+    <div class="px-6 md:px-12 max-w-6xl mx-auto">
+      <div class="text-center mb-16 fade-up">
+        <p class="font-body text-cta text-sm tracking-[0.25em] uppercase mb-3">Ce qu'ils disent</p>
+        <h2 class="text-4xl md:text-5xl text-bg gold-line">Nos Clients Parlent</h2>
+      </div>
+      <div class="grid md:grid-cols-3 gap-6">
+        <!-- Testimonial 1 -->
+        <div class="fade-up delay-1 bg-white/5 border border-white/10 rounded-xl p-8 flex flex-col gap-5">
+          <div class="flex gap-1" aria-label="5 étoiles sur 5">
+            <span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span>
+          </div>
+          <p class="font-body text-bg/80 text-base leading-relaxed italic">
+            "Une expérience gastronomique mémorable. La côte de bœuf était parfaitement cuite et le service irréprochable. Nous reviendrons sans hésiter !"
+          </p>
+          <div class="flex items-center gap-3 mt-auto pt-4 border-t border-white/10">
+            <div class="w-10 h-10 rounded-full bg-primary/60 flex items-center justify-center font-heading text-white text-sm">SM</div>
+            <div>
+              <p class="font-body font-semibold text-bg text-sm">Sophie M.</p>
+              <p class="font-body text-bg/40 text-xs">Paris, France</p>
+            </div>
+          </div>
+        </div>
+        <!-- Testimonial 2 -->
+        <div class="fade-up delay-2 bg-white/5 border border-white/10 rounded-xl p-8 flex flex-col gap-5">
+          <div class="flex gap-1" aria-label="5 étoiles sur 5">
+            <span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span>
+          </div>
+          <p class="font-body text-bg/80 text-base leading-relaxed italic">
+            "Le cadre est magnifique, les cocktails signature sont créatifs et délicieux. Un vrai coup de cœur pour notre anniversaire de mariage."
+          </p>
+          <div class="flex items-center gap-3 mt-auto pt-4 border-t border-white/10">
+            <div class="w-10 h-10 rounded-full bg-cta/60 flex items-center justify-center font-heading text-white text-sm">TB</div>
+            <div>
+              <p class="font-body font-semibold text-bg text-sm">Thomas B.</p>
+              <p class="font-body text-bg/40 text-xs">Lyon, France</p>
+            </div>
+          </div>
+        </div>
+        <!-- Testimonial 3 -->
+        <div class="fade-up delay-3 bg-white/5 border border-white/10 rounded-xl p-8 flex flex-col gap-5">
+          <div class="flex gap-1" aria-label="5 étoiles sur 5">
+            <span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span>
+          </div>
+          <p class="font-body text-bg/80 text-base leading-relaxed italic">
+            "Le moelleux au chocolat est tout simplement divin. Le chef maîtrise chaque détail. La meilleure table de la ville, sans aucun doute."
+          </p>
+          <div class="flex items-center gap-3 mt-auto pt-4 border-t border-white/10">
+            <div class="w-10 h-10 rounded-full bg-secondary/40 flex items-center justify-center font-heading text-white text-sm">CL</div>
+            <div>
+              <p class="font-body font-semibold text-bg text-sm">Claire L.</p>
+              <p class="font-body text-bg/40 text-xs">Bordeaux, France</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Rating summary -->
+      <div class="mt-12 text-center fade-up delay-2">
+        <p class="font-heading text-5xl text-cta">4.9 / 5</p>
+        <div class="flex justify-center gap-1 mt-2" aria-hidden="true">
+          <span class="star text-2xl">★</span><span class="star text-2xl">★</span><span class="star text-2xl">★</span><span class="star text-2xl">★</span><span class="star text-2xl">★</span>
+        </div>
+        <p class="font-body text-bg/50 text-sm mt-2">Basé sur 500+ avis vérifiés</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ RESERVATION ═══════════════════════════ -->
+  <section id="reservation" class="py-24 md:py-32 bg-primary">
+    <div class="px-6 md:px-12 max-w-2xl mx-auto text-center">
+      <div class="fade-up">
+        <p class="font-body text-cta bg-white/10 inline-block px-4 py-1 rounded-full text-sm tracking-[0.2em] uppercase mb-4">Réservation</p>
+        <h2 class="text-4xl md:text-5xl text-white mb-4">Réservez Votre<br/>Table</h2>
+        <p class="font-body text-white/70 mb-10">Garantissez votre place pour une soirée inoubliable.</p>
+      </div>
+
+      <form id="reservation-form" class="space-y-4 text-left fade-up delay-1" novalidate>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label for="res-name" class="font-body text-white/80 text-sm mb-1 block">Nom complet <span aria-hidden="true">*</span></label>
+            <input id="res-name" name="name" type="text" required autocomplete="name"
+                   placeholder="Jean Dupont"
+                   class="w-full bg-white/10 border border-white/30 text-white placeholder-white/40 rounded px-4 py-3 font-body text-sm focus:outline-none focus:border-cta focus:ring-1 focus:ring-cta transition-colors duration-200" />
+          </div>
+          <div>
+            <label for="res-email" class="font-body text-white/80 text-sm mb-1 block">Email <span aria-hidden="true">*</span></label>
+            <input id="res-email" name="email" type="email" required autocomplete="email"
+                   placeholder="jean@email.com"
+                   class="w-full bg-white/10 border border-white/30 text-white placeholder-white/40 rounded px-4 py-3 font-body text-sm focus:outline-none focus:border-cta focus:ring-1 focus:ring-cta transition-colors duration-200" />
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-3 gap-4">
+          <div>
+            <label for="res-date" class="font-body text-white/80 text-sm mb-1 block">Date <span aria-hidden="true">*</span></label>
+            <input id="res-date" name="date" type="date" required
+                   class="w-full bg-white/10 border border-white/30 text-white rounded px-4 py-3 font-body text-sm focus:outline-none focus:border-cta focus:ring-1 focus:ring-cta transition-colors duration-200 [color-scheme:dark]" />
+          </div>
+          <div>
+            <label for="res-time" class="font-body text-white/80 text-sm mb-1 block">Heure <span aria-hidden="true">*</span></label>
+            <select id="res-time" name="time" required
+                    class="w-full bg-white/10 border border-white/30 text-white rounded px-4 py-3 font-body text-sm focus:outline-none focus:border-cta focus:ring-1 focus:ring-cta transition-colors duration-200 cursor-pointer appearance-none [color-scheme:dark]">
+              <option value="" disabled selected>Choisir</option>
+              <option value="12:00">12h00</option>
+              <option value="12:30">12h30</option>
+              <option value="13:00">13h00</option>
+              <option value="13:30">13h30</option>
+              <option value="19:00">19h00</option>
+              <option value="19:30">19h30</option>
+              <option value="20:00">20h00</option>
+              <option value="20:30">20h30</option>
+              <option value="21:00">21h00</option>
+            </select>
+          </div>
+          <div>
+            <label for="res-guests" class="font-body text-white/80 text-sm mb-1 block">Couverts <span aria-hidden="true">*</span></label>
+            <select id="res-guests" name="guests" required
+                    class="w-full bg-white/10 border border-white/30 text-white rounded px-4 py-3 font-body text-sm focus:outline-none focus:border-cta focus:ring-1 focus:ring-cta transition-colors duration-200 cursor-pointer appearance-none [color-scheme:dark]">
+              <option value="" disabled selected>Nb</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+              <option>5</option><option>6</option><option value="7+">7+</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label for="res-message" class="font-body text-white/80 text-sm mb-1 block">Message (optionnel)</label>
+          <textarea id="res-message" name="message" rows="3"
+                    placeholder="Allergies, occasion spéciale…"
+                    class="w-full bg-white/10 border border-white/30 text-white placeholder-white/40 rounded px-4 py-3 font-body text-sm focus:outline-none focus:border-cta focus:ring-1 focus:ring-cta transition-colors duration-200 resize-none"></textarea>
+        </div>
+        <div id="form-error" role="alert" class="hidden text-yellow-200 font-body text-sm text-center py-2"></div>
+        <button type="submit"
+                class="w-full bg-cta text-white py-4 rounded font-body font-semibold text-base tracking-wide hover:bg-yellow-700 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:opacity-60 disabled:cursor-not-allowed">
+          Confirmer la Réservation
+        </button>
+      </form>
+
+      <!-- Success state (hidden) -->
+      <div id="form-success" class="hidden text-center py-6">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#CA8A04" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-4" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        <h3 class="font-heading text-2xl text-white mb-2">Réservation Reçue !</h3>
+        <p class="font-body text-white/70">Nous vous confirmerons par email sous 24h.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ CONTACT ═══════════════════════════ -->
+  <section id="contact" class="py-24 md:py-32 px-6 md:px-12 max-w-6xl mx-auto">
+    <div class="text-center mb-16 fade-up">
+      <p class="font-body text-cta text-sm tracking-[0.25em] uppercase mb-3">Nous Trouver</p>
+      <h2 class="text-4xl md:text-5xl text-textMain gold-line">Contact & Horaires</h2>
+    </div>
+    <div class="grid md:grid-cols-3 gap-8 text-center mb-12">
+      <!-- Address -->
+      <div class="fade-up delay-1 bg-white border border-primary/10 rounded-lg p-8 hover:shadow-lg transition-shadow duration-200">
+        <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <h3 class="font-heading text-lg text-textMain mb-2">Adresse</h3>
+        <p class="font-body text-textMain/65 text-sm leading-relaxed">123 Rue de la Mer<br/>75001 Paris, France</p>
+      </div>
+      <!-- Hours -->
+      <div class="fade-up delay-2 bg-white border border-primary/10 rounded-lg p-8 hover:shadow-lg transition-shadow duration-200">
+        <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <h3 class="font-heading text-lg text-textMain mb-2">Horaires</h3>
+        <p class="font-body text-textMain/65 text-sm leading-relaxed">
+          Lun – Ven : 12h – 14h30<br/>
+          Lun – Sam : 19h – 22h30<br/>
+          Dim : 12h – 15h
+        </p>
+      </div>
+      <!-- Phone / Email -->
+      <div class="fade-up delay-3 bg-white border border-primary/10 rounded-lg p-8 hover:shadow-lg transition-shadow duration-200">
+        <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.7 19.79 19.79 0 0 1 1.61 5.1 2 2 0 0 1 3.6 3h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 10.7a16 16 0 0 0 6 6l.94-.94a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 18v-.08z"/></svg>
+        </div>
+        <h3 class="font-heading text-lg text-textMain mb-2">Nous Joindre</h3>
+        <p class="font-body text-textMain/65 text-sm leading-relaxed">
+          <a href="tel:+33100000000" class="hover:text-primary transition-colors duration-200 cursor-pointer">+33 1 00 00 00 00</a><br/>
+          <a href="mailto:contact@letortuga.fr" class="hover:text-primary transition-colors duration-200 cursor-pointer">contact@letortuga.fr</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- OpenStreetMap -->
+    <div class="map-container fade-up delay-2">
+      <iframe
+        title="Localisation du restaurant Le Tortuga"
+        src="https://www.openstreetmap.org/export/embed.html?bbox=2.332%2C48.855%2C2.358%2C48.867&layer=mapnik&marker=48.861%2C2.345"
+        width="100%"
+        height="380"
+        style="border:0; display:block;"
+        allowfullscreen
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+      ></iframe>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ FOOTER ═══════════════════════════ -->
+  <footer class="bg-textMain py-12 px-6 md:px-12">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2">
+        <svg width="28" height="28" viewBox="0 0 36 36" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="18" cy="18" r="17" stroke="#CA8A04" stroke-width="2"/>
+          <circle cx="18" cy="18" r="4" fill="#CA8A04"/>
+          <line x1="18" y1="1" x2="18" y2="8" stroke="#CA8A04" stroke-width="2" stroke-linecap="round"/>
+          <line x1="18" y1="28" x2="18" y2="35" stroke="#CA8A04" stroke-width="2" stroke-linecap="round"/>
+          <line x1="1" y1="18" x2="8" y2="18" stroke="#CA8A04" stroke-width="2" stroke-linecap="round"/>
+          <line x1="28" y1="18" x2="35" y2="18" stroke="#CA8A04" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span class="font-heading text-bg text-lg tracking-wider">Le Tortuga</span>
+      </div>
+      <p class="font-body text-bg/40 text-sm text-center">
+        &copy; 2026 Le Tortuga. Tous droits réservés.
+      </p>
+      <div class="flex gap-5">
+        <a href="#" class="text-bg/50 hover:text-cta transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-cta rounded" aria-label="Instagram">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        </a>
+        <a href="#" class="text-bg/50 hover:text-cta transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-cta rounded" aria-label="Facebook">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ═══════════════════════════ BACK TO TOP ═══════════════════════════ -->
+  <button id="back-top" aria-label="Retour en haut de page">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+      <polyline points="18 15 12 9 6 15"/>
+    </svg>
+  </button>
+
+  <!-- ═══════════════════════════ SCRIPTS ═══════════════════════════ -->
+  <script>
+    /* ── Navbar scroll effect ── */
+    const navbar = document.getElementById('navbar');
+    const backTop = document.getElementById('back-top');
+
+    window.addEventListener('scroll', () => {
+      const scrolled = window.scrollY > 60;
+      navbar.classList.toggle('navbar-scrolled', scrolled);
+      backTop.classList.toggle('show', window.scrollY > 400);
+    }, { passive: true });
+
+    backTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+    /* ── Mobile menu ── */
+    const menuBtn    = document.getElementById('menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const iconOpen   = document.getElementById('icon-open');
+    const iconClose  = document.getElementById('icon-close');
+
+    menuBtn.addEventListener('click', () => {
+      const isOpen = !mobileMenu.classList.contains('hidden');
+      mobileMenu.classList.toggle('hidden');
+      iconOpen.classList.toggle('hidden');
+      iconClose.classList.toggle('hidden');
+      menuBtn.setAttribute('aria-expanded', String(!isOpen));
+    });
+
+    function closeMobileMenu() {
+      mobileMenu.classList.add('hidden');
+      iconOpen.classList.remove('hidden');
+      iconClose.classList.add('hidden');
+      menuBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    /* ── Scroll fade-in animations ── */
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!prefersReduced) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12 });
+      document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+    } else {
+      document.querySelectorAll('.fade-up').forEach(el => el.classList.add('visible'));
+    }
+
+    /* ── Menu data ── */
+    const menuData = {
+      entrees: [
+        { name: 'Tartare de Thon',    desc: 'Thon frais, avocat, sésame grillé',       price: '14€' },
+        { name: 'Velouté du Moment',  desc: 'Selon arrivage, crème fraîche maison',    price: '9€'  },
+        { name: 'Planche Charcuterie',desc: 'Sélection de charcuteries artisanales',   price: '16€' },
+      ],
+      plats: [
+        { name: 'Côte de Bœuf (2 pers.)', desc: 'Frites maison, sauce béarnaise',      price: '58€' },
+        { name: 'Dos de Cabillaud',        desc: 'Légumes de saison, beurre citronné', price: '24€' },
+        { name: 'Risotto aux Champignons', desc: 'Champignons de Paris, parmesan',     price: '19€' },
+      ],
+      desserts: [
+        { name: 'Moelleux au Chocolat', desc: 'Cœur fondant, glace vanille',           price: '10€' },
+        { name: 'Crème Brûlée',         desc: 'Recette maison, vanille Madagascar',    price: '9€'  },
+        { name: 'Tarte Tatin',          desc: 'Pommes caramélisées, chantilly',        price: '9€'  },
+      ],
+      boissons: [
+        { name: 'Carte des Vins',      desc: 'Sélection France & Monde',              price: 'dès 6€'  },
+        { name: 'Cocktails Signature', desc: 'Créations du bar Tortuga',              price: 'dès 12€' },
+        { name: 'Softs & Jus',         desc: 'Pression, eaux minérales, jus frais',   price: 'dès 4€'  },
+      ],
+    };
+
+    const tabBtns  = document.querySelectorAll('.tab-btn');
+    const menuGrid = document.getElementById('menu-grid');
+
+    function renderMenu(category) {
+      menuGrid.innerHTML = menuData[category].map(item => `
+        <div class="menu-card bg-white/5 border border-white/10 rounded-lg p-6 cursor-default">
+          <div class="flex justify-between items-start gap-3 mb-2">
+            <h3 class="font-heading text-lg text-bg leading-snug">${item.name}</h3>
+            <span class="font-body font-bold text-cta text-base whitespace-nowrap">${item.price}</span>
+          </div>
+          <p class="font-body text-bg/55 text-sm leading-relaxed">${item.desc}</p>
+        </div>
+      `).join('');
+    }
+
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabBtns.forEach(b => {
+          b.classList.remove('active', 'bg-primary', 'text-white');
+          b.classList.add('text-bg/60', 'hover:text-bg');
+          b.setAttribute('aria-selected', 'false');
+        });
+        btn.classList.add('active', 'bg-primary', 'text-white');
+        btn.classList.remove('text-bg/60', 'hover:text-bg');
+        btn.setAttribute('aria-selected', 'true');
+        renderMenu(btn.dataset.category);
+      });
+    });
+
+    tabBtns[0].classList.add('bg-primary', 'text-white');
+    tabBtns.forEach((b, i) => { if(i !== 0) b.classList.add('text-bg/60', 'hover:text-bg'); });
+    renderMenu('entrees');
+
+    /* ── Lightbox ── */
+    const galleryPhotos = [
+      { src: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1200&q=90&auto=format&fit=crop', alt: 'Salle de restaurant élégante' },
+      { src: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=1200&q=90&auto=format&fit=crop', alt: 'Côte de bœuf grillée' },
+      { src: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=1200&q=90&auto=format&fit=crop', alt: 'Assiette gastronomique dressée' },
+      { src: 'https://images.unsplash.com/photo-1510626176961-4b57d4fbad03?w=1200&q=90&auto=format&fit=crop', alt: 'Cocktail signature du Tortuga' },
+      { src: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?w=1200&q=90&auto=format&fit=crop', alt: 'Petit-déjeuner raffiné' },
+      { src: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=1200&q=90&auto=format&fit=crop', alt: 'Ambiance chaleureuse du restaurant' },
+    ];
+
+    const lightbox     = document.getElementById('lightbox');
+    const lbImg        = document.getElementById('lightbox-img');
+    const lbCounter    = document.getElementById('lightbox-counter');
+    let currentIndex   = 0;
+
+    function openLightbox(index) {
+      currentIndex = index;
+      const photo = galleryPhotos[index];
+      lbImg.src = photo.src;
+      lbImg.alt = photo.alt;
+      lbCounter.textContent = `${index + 1} / ${galleryPhotos.length}`;
+      lightbox.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      document.getElementById('lightbox-close').focus();
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function lightboxNav(dir) {
+      currentIndex = (currentIndex + dir + galleryPhotos.length) % galleryPhotos.length;
+      openLightbox(currentIndex);
+    }
+
+    document.querySelectorAll('.gallery-item').forEach((item, i) => {
+      item.addEventListener('click', () => openLightbox(i));
+      item.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(i); }});
+    });
+
+    document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+    document.getElementById('lightbox-prev').addEventListener('click', () => lightboxNav(-1));
+    document.getElementById('lightbox-next').addEventListener('click', () => lightboxNav(1));
+
+    lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
+
+    document.addEventListener('keydown', e => {
+      if (!lightbox.classList.contains('open')) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') lightboxNav(-1);
+      if (e.key === 'ArrowRight') lightboxNav(1);
+    });
+
+    /* ── Reservation form ── */
+    const form    = document.getElementById('reservation-form');
+    const success = document.getElementById('form-success');
+    const errBox  = document.getElementById('form-error');
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      errBox.classList.add('hidden');
+      errBox.textContent = '';
+
+      const name   = form.querySelector('#res-name').value.trim();
+      const email  = form.querySelector('#res-email').value.trim();
+      const date   = form.querySelector('#res-date').value;
+      const time   = form.querySelector('#res-time').value;
+      const guests = form.querySelector('#res-guests').value;
+
+      if (!name || !email || !date || !time || !guests) {
+        errBox.textContent = 'Veuillez remplir tous les champs obligatoires.';
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      const submitBtn = form.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Envoi en cours…';
+
+      setTimeout(() => {
+        form.classList.add('hidden');
+        success.classList.remove('hidden');
+      }, 800);
+    });
+  </script>
+</body>
+</html>
